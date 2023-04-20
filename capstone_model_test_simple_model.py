@@ -25,15 +25,45 @@ Original file is located at
 !cp /content/drive/MyDrive/CapstoneData/RFMiD_Training_Labels.csv /content/Training_Set/
 
 !git clone https://github.com/Hanson0910/Pytorch-RIADD.git
+!pip install vit-pytorch
 
 import sys
-    # caution: path[0] is reserved for script path (or '' in REPL)
 sys.path.insert(1, '/content/Pytorch-RIADD')
 
 import albumentations
-from albumentations.pytorch import ToTensorV2
 import cv2
 import numpy as np
+from albumentations.pytorch import ToTensorV2
+import pickle
+from glob import glob
+
+import pandas as pd
+from imblearn.over_sampling import RandomOverSampler
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
+import os
+import urllib.request
+from urllib.error import HTTPError
+
+import lightning as L
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib_inline.backend_inline
+import seaborn as sns
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import torch.utils.data as data
+import torchvision
+from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
+from torchvision import transforms
+from torchvision.datasets import CIFAR10
+import torch
+from einops import rearrange
+from einops.layers.torch import Rearrange
+from torch import nn
+
 image_size = 64
 train_trans  = albumentations.Compose([
         albumentations.Resize(image_size, image_size),
@@ -62,14 +92,6 @@ valid_trans_batch = albumentations.Compose([
         ),
         ToTensorV2(),
     ])
-
-from glob import glob
-from imblearn.over_sampling import RandomOverSampler
-from tqdm import tqdm
-import pickle
-import pandas as pd
-
-from torch.utils.data import Dataset, DataLoader
 
 class RetinaDataset(Dataset):
     """Face Landmarks dataset."""
@@ -123,26 +145,6 @@ val_loader = DataLoader(val_dataset, batch_size=16, shuffle=True, num_workers=8)
 test_dataset = RetinaDataset(data_folder = "/content/Test_Set/Test", label_path = "/content/Test_Set/RFMiD_Testing_Labels.csv", upsample=False, presaved_data_path = "/content/drive/MyDrive/CapstoneData/test_data_upsampe.pkl", save_data_path = None, transform = valid_trans_batch, image_size=64 )
 test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=8)
 
-import os
-import urllib.request
-from urllib.error import HTTPError
-
-import lightning as L
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib_inline.backend_inline
-import seaborn as sns
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torch.utils.data as data
-import torchvision
-from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
-from torchvision import transforms
-from torchvision.datasets import CIFAR10
-
-
 # Setting the seed
 L.seed_everything(42)
 torch.backends.cudnn.deterministic = True
@@ -151,53 +153,8 @@ torch.backends.cudnn.benchmark = False
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 print("Device:", device)
 
-# DATASET_PATH = "data/"
 CHECKPOINT_PATH = os.environ.get("PATH_CHECKPOINT", "/content/drive/MyDrive/CapstoneData/")
 
-# test_transform = transforms.Compose(
-#     [
-#         transforms.ToTensor(),
-#         transforms.Normalize([0.49139968, 0.48215841, 0.44653091], [0.24703223, 0.24348513, 0.26158784]),
-#     ]
-# )
-# # For training, we add some augmentation. Networks are too powerful and would overfit.
-# train_transform = transforms.Compose(
-#     [
-#         transforms.RandomHorizontalFlip(),
-#         transforms.RandomResizedCrop((32, 32), scale=(0.8, 1.0), ratio=(0.9, 1.1)),
-#         transforms.ToTensor(),
-#         transforms.Normalize([0.49139968, 0.48215841, 0.44653091], [0.24703223, 0.24348513, 0.26158784]),
-#     ]
-# )
-# # Loading the training dataset. We need to split it into a training and validation part
-# # We need to do a little trick because the validation set should not use the augmentation.
-# train_dataset = CIFAR10(root=DATASET_PATH, train=True, transform=train_transform, download=True)
-# val_dataset = CIFAR10(root=DATASET_PATH, train=True, transform=test_transform, download=True)
-# L.seed_everything(42)
-# train_set, _ = torch.utils.data.random_split(train_dataset, [45000, 5000])
-# L.seed_everything(42)
-# _, val_set = torch.utils.data.random_split(val_dataset, [45000, 5000])
-
-# # Loading the test set
-# test_set = CIFAR10(root=DATASET_PATH, train=False, transform=test_transform, download=True)
-
-# # We define a set of data loaders that we can use for various purposes later.
-# train_loader = data.DataLoader(train_set, batch_size=128, shuffle=True, drop_last=True, pin_memory=True, num_workers=4)
-# val_loader = data.DataLoader(val_set, batch_size=128, shuffle=False, drop_last=False, num_workers=4)
-# test_loader = data.DataLoader(test_set, batch_size=128, shuffle=False, drop_last=False, num_workers=4)
-
-# # Visualize some examples
-# NUM_IMAGES = 4
-# CIFAR_images = torch.stack([val_set[idx][0] for idx in range(NUM_IMAGES)], dim=0)
-# img_grid = torchvision.utils.make_grid(CIFAR_images, nrow=4, normalize=True, pad_value=0.9)
-# img_grid = img_grid.permute(1, 2, 0)
-
-# plt.figure(figsize=(8, 8))
-# plt.title("Image examples of the CIFAR10 dataset")
-# plt.imshow(img_grid)
-# plt.axis("off")
-# plt.show()
-# plt.close()
 
 def img_to_patch(x, patch_size, flatten_channels=True):
     """
@@ -215,117 +172,6 @@ def img_to_patch(x, patch_size, flatten_channels=True):
         x = x.flatten(2, 4)  # [B, H'*W', C*p_H*p_W]
     return x
 
-# plt.imshow(val_dataset[7][0].permute(1,2,0))
-
-# cifar_img = img_to_patch(train_dataset[5][0].reshape(1,3,64,64), 8, flatten_channels=False)
-
-# cifar_img.shape
-
-# cifar_img[0][0].to(dtype= torch.float64)
-
-# plt.imshow(torchvision.utils.make_grid(cifar_img[0].to(dtype= torch.float64), nrow=64, normalize=True, pad_value=0.9).permute(1, 2, 0))
-
-!pip install vit-pytorch
-
-from einops import rearrange
-from einops.layers.torch import Rearrange
-import torch
-from torch import nn
-
-# class Attention(nn.Module):
-#     def __init__(self, dim, heads = 8, dim_head = 64):
-#         super().__init__()
-#         inner_dim = dim_head *  heads
-#         self.heads = heads
-#         self.scale = dim_head ** -0.5
-#         self.norm = nn.LayerNorm(dim)
-
-#         self.attend = nn.Softmax(dim = -1)
-
-#         self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
-#         self.to_out = nn.Linear(inner_dim, dim, bias = False)
-
-#     def forward(self, x):
-#         x = self.norm(x)
-
-#         qkv = self.to_qkv(x).chunk(3, dim = -1)
-#         q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), qkv)
-
-#         dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
-
-#         attn = self.attend(dots)
-
-#         out = torch.matmul(attn, v)
-#         out = rearrange(out, 'b h n d -> b n (h d)')
-#         return self.to_out(out)
-
-# # test_norm = nn.LayerNorm(3*8*8)
-# # test_linear = nn.Linear(3*8*8, 64 * 8 * 3, bias = False)
-# test_attention = Attention(3*8*8, heads = 8, dim_head = 64)
-# test_mhattention = nn.MultiheadAttention(3*8*64, 8)
-
-# test_linear = nn.Linear(3 * (8**2), 64*8)
-
-# for batch in train_loader:
-#   x = img_to_patch(batch[0],patch_size=8,flatten_channels=True)
-#   x1 = test_attention(x)
-#   x2 = test_linear(x)
-#   x2 = test_mhattention(x2,x2,x2)[0]
-#   print(x1.shape, x2.shape)
-
-# x.sum().backward()
-
-# test_attention.norm.weight
-
-# for batch in train_loader:
-#   print(batch[0].shape)
-#   x = img_to_patch(batch[0],patch_size=8,flatten_channels=True)
-#   x_test = torch.matmul(x, test_norm.weight)
-#   x_control = test_norm(x)
-#   assert x_test == x_control
-
-# for batch in train_loader:
-#   print(batch[0].shape)
-#   x = img_to_patch(batch[0],patch_size=8,flatten_channels=True)
-#   x = test_norm(x)
-#   print(x.shape)
-#   x = test_linear(x)
-#   print(x.shape)
-#   qkv = x.chunk(3, dim = -1)
-#   q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = 8), qkv)
-#   print(q.shape)
-#   print(k.transpose(-1, -2).shape)
-#   print(torch.matmul(q, k.transpose(-1, -2)).shape)
-#   5/0
-
-
-
-# class Attention(nn.Module):
-#     def __init__(self, dim, heads = 8, dim_head = 64):
-#         super().__init__()
-#         inner_dim = dim_head *  heads
-#         self.heads = heads
-#         self.scale = dim_head ** -0.5
-#         self.norm = nn.LayerNorm(dim)
-
-#         self.attend = nn.Softmax(dim = -1)
-
-#         self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
-#         self.to_out = nn.Linear(inner_dim, dim, bias = False)
-
-#     def forward(self, x):
-#         x = self.norm(x)
-
-#         qkv = self.to_qkv(x).chunk(3, dim = -1)
-#         q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), qkv)
-
-#         dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
-
-#         attn = self.attend(dots)
-
-#         out = torch.matmul(attn, v)
-#         out = rearrange(out, 'b h n d -> b n (h d)')
-#         return self.to_out(out)
 
 class MultiheadAttention(nn.Module):
     def __init__(self, dim, heads = 8, dim_head = 64):
@@ -512,8 +358,6 @@ def train_model(**kwargs):
     result = {"test": test_result[0]["test_acc"], "val": val_result[0]["test_acc"]}
 
     return model, result
-
-# trainer.test(model, dataloaders=val_loader, verbose=False)
 
 model, results = train_model(
     model_kwargs={
