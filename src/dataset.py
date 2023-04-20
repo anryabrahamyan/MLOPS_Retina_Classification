@@ -1,8 +1,6 @@
 """
 Dataset class containing the loading and preprocessing of the data
 """
-
-
 import pickle
 from glob import glob
 

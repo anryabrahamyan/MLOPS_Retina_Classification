@@ -121,7 +121,7 @@ val_dataset = RetinaDataset(data_folder = "/content/Evaluation_Set/Validation", 
 val_loader = DataLoader(val_dataset, batch_size=16, shuffle=True, num_workers=8)
 
 test_dataset = RetinaDataset(data_folder = "/content/Test_Set/Test", label_path = "/content/Test_Set/RFMiD_Testing_Labels.csv", upsample=False, presaved_data_path = "/content/drive/MyDrive/CapstoneData/test_data_upsampe.pkl", save_data_path = None, transform = valid_trans_batch, image_size=64 )
-test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=8)
+test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=8)    
 
 device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 print("Device:", device)
