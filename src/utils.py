@@ -1,6 +1,22 @@
 """
 Utility functions for the training script
 """
+import hashlib
+import os
+
+def get_folder_checksum(folder_path):
+    """
+    Returns the SHA-256 checksum hash of all the files in the given folder.
+    """
+    hasher = hashlib.sha256()
+    for root, dirs, files in os.walk(folder_path):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            with open(filepath, 'rb') as file:
+                buf = file.read()
+                hasher.update(buf)
+    return hasher.hexdigest()
+
 
 def img_to_patch(x, patch_size, flatten_channels=True):
     """

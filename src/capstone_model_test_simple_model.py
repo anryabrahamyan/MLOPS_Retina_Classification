@@ -20,12 +20,12 @@ Original file is located at
 # !unzip /content/drive/MyDrive/CapstoneData/Training_Set.zip
 # !unzip /content/drive/MyDrive/CapstoneData/Evaluation_Set.zip
 
-!cp /content/drive/MyDrive/CapstoneData/RFMiD_Testing_Labels.csv /content/Test_Set/
-!cp /content/drive/MyDrive/CapstoneData/RFMiD_Validation_Labels.csv /content/Evaluation_Set/
-!cp /content/drive/MyDrive/CapstoneData/RFMiD_Training_Labels.csv /content/Training_Set/
+# !cp /content/drive/MyDrive/CapstoneData/RFMiD_Testing_Labels.csv /content/Test_Set/
+# !cp /content/drive/MyDrive/CapstoneData/RFMiD_Validation_Labels.csv /content/Evaluation_Set/
+# !cp /content/drive/MyDrive/CapstoneData/RFMiD_Training_Labels.csv /content/Training_Set/
 
-!git clone https://github.com/Hanson0910/Pytorch-RIADD.git
-!pip install vit-pytorch
+# !git clone https://github.com/Hanson0910/Pytorch-RIADD.git
+# !pip install vit-pytorch
 
 import sys
 
@@ -41,8 +41,8 @@ from albumentations.pytorch import ToTensorV2
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from torch.utils.data import DataLoader
 
-from src.dataset import RetinaDataset
-from src.vision_transformer import *
+from dataset import RetinaDataset
+from vision_transformer import *
 
 # Setting the seed
 L.seed_everything(42)
@@ -145,9 +145,3 @@ if __name__=="__main__":
         train_loader = train_loader
     )
     print("ViT results", results)
-
-    !git clone https://github.com/anryabrahamyan/MLOPS_Retina_Classification.git
-    !git commit -m "adding model"
-    !git config --global user.email "hovhannes.manushyan@gmail.com"
-    !git config --global user.name "HovhannesManushyan"
-    !git ls-remote --heads
