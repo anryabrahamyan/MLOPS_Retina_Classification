@@ -1,12 +1,10 @@
-import hashlib
-import os
 import pytest
 import sys
  
 # setting path
 sys.path.append('../')
 
-from src.capstone_model_test_simple_model import *
+from model.capstone_model_test_simple_model import *
 
 @pytest.mark.parametrize("dataloader,shape", [(train_loader,[3,64,64]),(val_loader,[3,64,64])])
 def test_dataloader_dims(dataloader,shape):
