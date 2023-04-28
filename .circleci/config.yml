@@ -27,11 +27,11 @@ jobs:
       - run:
           name: Login to Fly.io
           command: |
-            flyctl auth login --access-token fo1_h6VXJ_7EvxElGt01Bk4B9kRmFuMRYjQ_bkQCXhu_0WY
+            ~/.fly/bin/flyctl auth login --access-token fo1_h6VXJ_7EvxElGt01Bk4B9kRmFuMRYjQ_bkQCXhu_0WY
       - run:
           name: Deploy Docker image to Fly.io
           command: |
-            flyctl deploy --image retina-dd --app retina-dd
+            ~/.fly/bin/flyctl deploy --image retina-dd --app retina-dd
 
 workflows:
   version: 2
