@@ -2,6 +2,7 @@ FROM python:3.9
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends
+RUN mkdir /bin
 
 COPY ./requirements.txt ./requirements.txt
 RUN pip install -r ./requirements.txt
@@ -12,4 +13,5 @@ ENV PYTHONUNBUFFERED=1
 
 RUN chmod +x ./entrypoint.sh
 EXPOSE 64000
+
 CMD ["./entrypoint.sh"]
