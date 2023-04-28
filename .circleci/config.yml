@@ -16,7 +16,10 @@ jobs:
             - /usr/local/bin/docker/
             - /root/.docker/
   deploy:
+    machine:
+      image: ubuntu-2004:2023.04.2
     steps:
+      - checkout
       - run:
           name: Install Flyctl
           command: |
