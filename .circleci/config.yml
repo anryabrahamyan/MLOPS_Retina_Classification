@@ -17,7 +17,6 @@ jobs:
             - /root/.docker/
   deploy:
     steps:
-      - checkout
       - run:
           name: Install Flyctl
           command: |
@@ -30,11 +29,12 @@ jobs:
           name: Deploy Docker image to Fly.io
           command: |
             flyctl deploy --image retina-dd --app retina-dd
-    requires:
-      - build
+
 workflows:
   version: 2
   build-and-deploy:
     jobs:
       - build
-      - deploy
+      - deploy:
+          requires:
+            - build
