@@ -2,7 +2,7 @@ FROM python:3.9
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends
-RUN mkdir /bin
+RUN chmod a+x /bin
 
 COPY ./requirements.txt ./requirements.txt
 RUN pip install -r ./requirements.txt
