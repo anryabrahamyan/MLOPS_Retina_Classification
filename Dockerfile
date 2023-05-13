@@ -13,5 +13,6 @@ ENV PYTHONUNBUFFERED=1
 
 RUN chmod +x ./entrypoint.sh
 EXPOSE 64000
+EXPOSE 443
 
 CMD ["./entrypoint.sh"]

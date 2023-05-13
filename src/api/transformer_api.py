@@ -44,6 +44,6 @@ async def create_file(file: bytes = File()):
     logs["time"] = time.time()
     logs["file_size"] = len(file)
     logs.update(system_stats)
-    send_data_to_elasticsearch(results)
+    send_data_to_elasticsearch(logs)
 
     return results
